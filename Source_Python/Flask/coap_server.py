@@ -6,11 +6,12 @@ from coapthon.server.coap import CoAP
 from coapthon.resources.resource import Resource
 from db_manager_mysql import add_device, create_database_and_tables, get_sensor_by_name, add_cell, npk
 from coapthon import defines
+import re
+
+expected_keys = {'npk', 'ph', 'moisture', 'temp', 'seed_type', 'row', 'col', 'field_id'}
+received_data = {}
 
 
-
-
-##-------------------------------------------WORKING------------------------------------------------##
 class RegistrationResource(Resource):
     def __init__(self, name="RegistrationResource", coap_server=None):
         super(RegistrationResource, self).__init__(name, coap_server, visible=True, observable=True)
@@ -24,7 +25,6 @@ class RegistrationResource(Resource):
         :param response: The outgoing CoAP response
         :return: A tuple containing the resource and the response
         """
-        print("POST request received at /registration")  # Debug log
         try:
             device_name = request.payload.strip()
             print(f"Received device name: {device_name}")  # Debug log
@@ -123,51 +123,23 @@ class DeviceNameDiscoverResource(Resource):
         return self, response
 
 
-
-
-
-expected_keys = {'npk', 'ph', 'moisture', 'temp', 'seed_type', 'row', 'col', 'field_id'}
-
-import re
-# Dizionario globale per accumulare i dati ricevuti
-received_data = {}
-
-def replace_commas_with_dots(json_string):
-    """
-    Sostituisce le virgole con i punti nei numeri decimali all'interno di una stringa JSON.
-    
-    Args:
-    json_string (str): La stringa JSON da modificare.
-    
-    Returns:
-    str: La stringa JSON modificata con i punti al posto delle virgole nei numeri decimali.
-    """
-    # Usa una espressione regolare per trovare numeri decimali con virgole
-    # La regex trova un numero che ha una virgola seguita da altre cifre.
-    modified_string = re.sub(r'(?<=\d),(?=\d)', '.', json_string)
-    
-    return modified_string
-
-
-
 class SaveResource(Resource):
     def __init__(self, name="SaveResource", coap_server=None):
         super(SaveResource, self).__init__(name, coap_server=coap_server, visible=True, observable=True)
-        self.content_format = "application/json"  # Cambiato per JSON
+        self.content_format = "application/json"  
 
     def render_POST_advanced(self, request, response):
         """
-        Metodo per gestire le richieste POST. Accumula dati e aggiorna il DB quando tutti i dati necessari sono stati ricevuti.
-        :param request: La richiesta CoAP in arrivo
-        :param response: La risposta CoAP in uscita
-        :return: Una tupla contenente la risorsa e la risposta
+        Method for handling POST requests. Accumulates data and updates the DB when all necessary data has been received.
+        :param request: The incoming CoAP request.
+        :param response: The outgoing CoAP response
+        :return: A tuple containing the resource and the response
         """
         print("Received advanced POST request.")
         
         try:
             payload_str = request.payload
             print(f"Raw payload: {payload_str}")
-            payload_str = replace_commas_with_dots(payload_str)
 
             if not payload_str:
                 response.code = defines.Codes.BAD_REQUEST.number
@@ -177,14 +149,13 @@ class SaveResource(Resource):
             # Parse the JSON payload
             payload = json.loads(payload_str)
             print(f"Parsed JSON payload: {payload}")
-
-            # Aggiorna i dati ricevuti globalmente
+            
+            # Update data received globally
             global received_data
             received_data.update(payload)
 
-            # Verifica se tutti i dati necessari sono presenti
+            # Check if all the necessary data are present            
             if all(k in received_data for k in expected_keys):
-                # Tutti i dati sono stati ricevuti, aggiorna il database
                 npk_values = received_data.get('npk', {})
                 npk_data = npk(n=npk_values.get('n'), p=npk_values.get('p'), k=npk_values.get('k'))
 
@@ -214,8 +185,8 @@ class SaveResource(Resource):
                     response.code = defines.Codes.CONTENT.number  # 2.05 Content
                     response.payload = "Cell data unchanged"
             else:
-                # Mancano ancora dati, aspetta ulteriori messaggi
-                print("Incomplete data received. Waiting for more data.")
+                # Still missing data, wait for more messages
+                print("Still missing data, waiting for more.")
                 response.code = defines.Codes.VALID.number  # 2.03 Valid
                 response.payload = "Data received, waiting for more."
 
@@ -229,19 +200,6 @@ class SaveResource(Resource):
             response.payload = f"Error: {str(e)}"
 
         return self, response
-
-
-
-
-
-#coap-client -m POST coap://[::1]:5683/register -e "ChatGPT2"
-
-#coap-client -m POST coap://[::1]:5683/discover -e '{"name": "npk"}'
-
-#coap-client -m POST coap://[::1]:5683/save -e '{"field_id": "1", "row": 2, "col": 3, "npk": {"n": 10, "p": 20, "k": 30}, "moisture": 15.5, "ph": 6.8, "temp": 22.5, "seed_type": "potato"}'
-
-#coap-client -m get -s coap://[fd00::f6ce:3643:1c3:5dcd]/sowing_actuator/status
-
 
 class CoAPServer(CoAP):
     def __init__(self, host, port=5683):
@@ -290,6 +248,3 @@ if __name__ == "__main__":
         print(f"Exception occurred: {e}")
         coap_server.stop()
         os._exit(1)
-
-
-##-------------------------------------------END WORKING---------------------------------------------##
