@@ -30,7 +30,7 @@ The system consists of the following components:
 ### System Scheme
 #### With Machine Learning Model
 
-![System Scheme With ML](ML/media/SeedBot_architecture.svg)
+![System Scheme With ML](Documentation/media/IoT_architecture.svg)
 
 ## Machine Learning Model
 
