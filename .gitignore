@@ -1,2 +1,9 @@
 build
 venv
+Documentation/documentation.toc
+Documentation/documentation.aux
+Documentation/documentation.fdb_latexmk
+Documentation/documentation.fls
+Documentation/documentation.log
+Documentation/documentation.out
+Documentation/documentation.synctex.gz
