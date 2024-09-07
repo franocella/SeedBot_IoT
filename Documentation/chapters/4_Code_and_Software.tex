@@ -5,10 +5,10 @@ The code for SeedBot is written in C and Python. We decided to use json format t
 The actuator code is responsible for controlling the movement and seed distribution. It retrieves data from sensors and applies the machine learning model to determine autonomously the type of seed to sow.
 The sensors code simulates data readings and sends them to the border router for processing.\\
 
-\subsection{Actuator Workflow}
+\subsection{Actuator workflow}
 
 \begin{enumerate}
-    \item \textit{Initialization and Registration:}
+    \item \textit{Initialization and registration:}
           \begin{itemize}
               \item The first step involves registering with the CoAP server. This process includes sending a\\
                     registration request to the server with the actuator's name and its IPv6 address. The\\
@@ -92,7 +92,7 @@ The sensors code simulates data readings and sends them to the border router for
         \end{lstlisting}
 
 
-    \item \textit{Updating the Central CoAP Server:}
+    \item \textit{Updating the central CoAP server:}
           \begin{itemize}
               \item A CoAP message is sent to the central server with details of the seeding operation, including the type of seed used, the current row and column, and the sensor values.
           \end{itemize}
@@ -112,22 +112,22 @@ The sensors code simulates data readings and sends them to the border router for
 \subsection{Sensors Workflow}
 
 \begin{enumerate}
-    \item \textit{Initialization and Registration:}
+    \item \textit{Initialization and registration:}
           \begin{itemize}
               \item Each sensor is initialized by registering with the central CoAP server. The sensor's name and its IPv6 address is sent to the server.
           \end{itemize}
 
-    \item \textit{Activation of Sensor Resources:}
+    \item \textit{Activation of sensor resources:}
           \begin{itemize}
               \item Once registration is successful, the sensor activates its corresponding resources (e.g., moisture, pH, NPK, temperature) to be available for CoAP requests.
           \end{itemize}
 
-    \item \textit{Data Simulation:}
+    \item \textit{Data simulation:}
           \begin{itemize}
               \item Each sensor simulates data readings based on predefined statistical distributions. The values are constrained to realistic ranges for each parameter using as reference the data from the \href{https://www.kaggle.com/code/mdshariaremonshaikat/optimizing-agricultural-production-with-7-ml-model/input}{dataset}.
           \end{itemize}
 
-    \item \textit{Handling CoAP GET Requests:}
+    \item \textit{Handling CoAP GET requests:}
           \begin{itemize}
               \item Each sensor responds to CoAP GET requests. It the simulated data and returns it in a JSON format within the CoAP response.
           \end{itemize}
@@ -142,7 +142,7 @@ The sensors code simulates data readings and sends them to the border router for
         
     \end{lstlisting}
 
-    \item \textit{Retry Mechanism for Registration:}
+    \item \textit{Retry mechanism for registration:}
           \begin{itemize}
               \item If the initial registration attempt fails, the sensor will retry registration for a predefined number of times, introducing a delay between each attempt.
           \end{itemize}
@@ -169,12 +169,12 @@ The server CoAP is used to manage the communication between the sensors and the 
 
 \textbf{Workflow}
 \begin{enumerate}
-    \item \textit{Sensor Registration:}
+    \item \textit{Sensor registration:}
           \begin{itemize}
               \item The CoAP server receives registration requests from the sensors and stores their information in the database using the \texttt{db\_manager\_mysql} module. Each sensor is assigned a unique identifier and its status is tracked in the database. The server confirms the registration and handles any registration errors.
           \end{itemize}
 
-    \item \textit{Data Retrieval:}
+    \item \textit{Data retrieval:}
           \begin{itemize}
               \item The CoAP server responds to CoAP GET requests from sensors or actuators. The data is read from the database.
           \end{itemize}
@@ -203,12 +203,12 @@ The server CoAP is used to manage the communication between the sensors and the 
         \end{lstlisting}
 
 
-    \item \textit{Sowing Process Management:}
+    \item \textit{Sowing process management:}
           \begin{itemize}
               \item The cloud application monitors and manages the sowing process by sending start, idle, or stop commands to the actuators via the CoAP server.
           \end{itemize}
 
-    \item \textit{Database Interaction:}
+    \item \textit{Database interaction:}
           \begin{itemize}
               \item Both \texttt{app.py} and \texttt{coap\_server.py} interact with the MySQL database through the\\
                     \texttt{db\_manager\_mysql.py} module. This module handles all CRUD operations, ensuring that sensor data, actuator statuses, and other critical information are properly stored and retrieved as needed.
