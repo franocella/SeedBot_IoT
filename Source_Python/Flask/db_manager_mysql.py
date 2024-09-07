@@ -7,22 +7,9 @@ from sqlalchemy.exc import SQLAlchemyError
 import pymysql
 from pymysql.err import OperationalError
 
-# Configurazione del logging
+# Configuring logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-# Installation of MySQL
-# sudo apt update
-# sudo apt install mysql-server
-
-# Enter MySQL command-line interface
-# sudo mysql -u root -p 
-# (For the first time, leave the password blank when prompted)
-
-# Configure root user authentication
-# ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
-# FLUSH PRIVILEGES;
 
 class FieldNotFoundError(Exception):
     """Exception raised when a field is not found in the database."""
@@ -33,7 +20,7 @@ from sqlalchemy.sql import func
 def get_field_progress(field_id):
     session = get_session()
     try:
-        # Query per ottenere le informazioni sul campo e il conteggio delle celle seminate
+        # Query to obtain field information and seeded cell count.
         result = session.query(
             Field.f_length,
             Field.f_width,
@@ -48,7 +35,7 @@ def get_field_progress(field_id):
 
         field_length, field_width, square_size, sowed_cells = result
 
-        # Calcolo del totale delle celle
+        # Calculating the total number of cells.        
         cells_per_row = int(field_length / square_size)
         cells_per_col = int(field_width / square_size)
         total_cells = cells_per_row * cells_per_col
@@ -56,7 +43,6 @@ def get_field_progress(field_id):
         if total_cells == 0:
             raise ValueError("Total number of cells cannot be zero.")
 
-        # Calcolo del progresso
         progress_percentage = (sowed_cells / total_cells) * 100
 
         logger.info(f"Field ID {field_id} - Total cells: {total_cells}, Sowed cells: {sowed_cells}, Progress: {progress_percentage:.2f}%")
@@ -80,23 +66,23 @@ def get_field_progress(field_id):
         close_session(session)
 
 
-# Configurazione della connessione
+# Connection configuration
 config = {
     'host': 'localhost',
     'user': 'root',
-    'password': 'root',  # Password per l'utente root
+    'password': 'root',  
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor
 }
 
 
 
-# Configurazione per MySQL
+# Configuration for MySQL
 DATABASE_URL = "mysql+pymysql://seedbot:seedbot24@localhost/seedbot"
 
 Base = declarative_base()
 
-# Definizione dei modelli
+# Defining models
 class Device(Base):
     __tablename__ = 'Device'
     name = Column(String(255), primary_key=True)
@@ -151,34 +137,32 @@ class Cell(Base):
     sowed = Column(Integer, nullable=True)
     field = relationship('Field', back_populates='cells')
 
-
-
 def create_user_and_db():
     connection = None
     try:
-        # Connessione a MySQL
+        # Connecting to MySQL
         connection = pymysql.connect(**config)
         
         with connection.cursor() as cursor:
-            # Crea l'utente 'seedbot' se non esiste
+            # Create user 'seedbot' if it does not exist.
             create_user_query = """
             CREATE USER IF NOT EXISTS 'seedbot'@'localhost' IDENTIFIED WITH mysql_native_password BY 'seedbot24';
             """
             cursor.execute(create_user_query)
             
-            # Crea il database 'seedbot' se non esiste
+            # Create the 'seedbot' database if it does not exist.
             create_db_query = """
             CREATE DATABASE IF NOT EXISTS seedbot;
             """
             cursor.execute(create_db_query)
             
-            # Concedi tutti i privilegi all'utente 'seedbot' sul database 'seedbot'
+            # Grant all privileges to user 'seedbot' on database 'seedbot'.
             grant_privileges_query = """
             GRANT ALL PRIVILEGES ON seedbot.* TO 'seedbot'@'localhost' WITH GRANT OPTION;
             """
             cursor.execute(grant_privileges_query)
             
-            # Applica le modifiche
+            # Apply the changes
             cursor.execute("FLUSH PRIVILEGES;")
             
             print("User 'seedbot' created, database 'seedbot' created, and privileges granted successfully.")
@@ -190,21 +174,7 @@ def create_user_and_db():
         if connection:
             connection.close()
 
-def create_tables():
-    try:
-        engine = create_engine(DATABASE_URL)
-        
-        # Creazione delle tabelle
-        Base.metadata.create_all(engine)
-        logger.info(f"Tabelle create con successo nel database '{engine.url.database}'.")
-        
-    except SQLAlchemyError as e:
-        logger.error(f"Errore durante la creazione delle tabelle: {str(e)}")
 
-
-def create_database_and_tables():
-    create_user_and_db()
-    create_tables()
 
 def create_tables():
     try:
@@ -217,17 +187,14 @@ def create_tables():
     except SQLAlchemyError as e:
         logger.error(f"Error during the creation of tables: {str(e)}")
 
-# Funzione per creare una sessione
 def get_session():
     engine = create_engine(DATABASE_URL)
     Session = sessionmaker(bind=engine)
     return Session()
 
-# Funzione per chiudere una sessione
 def close_session(session):
     session.close()
 
-# Funzione per aggiungere o aggiornare un dispositivo
 def add_device(name, ipv6_address):
     session = get_session()
     try:
@@ -250,7 +217,6 @@ def add_device(name, ipv6_address):
     finally:
         close_session(session)
 
-# Funzione per ottenere tutti i dispositivi
 def get_all_devices():
     session = get_session()
     devices_dict = {}
@@ -266,7 +232,6 @@ def get_all_devices():
         close_session(session)
     return devices_dict
 
-# Funzione per ottenere un dispositivo per nome
 def get_sensor_by_name(sensor_name):
     session = get_session()
     device_dict = None
@@ -283,7 +248,6 @@ def get_sensor_by_name(sensor_name):
         close_session(session)
     return device_dict
 
-# Funzione per aggiungere o aggiornare un campo
 def add_field(f_length, f_width, square_size, start_sowing_date, end_sowing_date=None, sowing_status=None):
     session = get_session()
     try:
@@ -319,7 +283,6 @@ def add_field(f_length, f_width, square_size, start_sowing_date, end_sowing_date
     finally:
         close_session(session)
 
-# Funzione per aggiungere o aggiornare una cella
 def add_cell(field_id, c_row, c_col, npk=None, moisture=None, ph=None, temperature=None, sowed=None):
     session = get_session()
     try:
@@ -369,3 +332,7 @@ def add_cell(field_id, c_row, c_col, npk=None, moisture=None, ph=None, temperatu
         session.rollback()
     finally:
         close_session(session)
+
+def create_database_and_tables():
+    create_user_and_db()
+    create_tables()

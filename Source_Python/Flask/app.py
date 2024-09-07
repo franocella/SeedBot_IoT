@@ -33,7 +33,7 @@ class CoAPObserver:
 
     def observe(self):
         """
-        Iscrive l'osservatore alla risorsa CoAP e gestisce le notifiche.
+        Subscribes the observer in the CoAP resource and handles notifications.        
         """
         try:
             self.client.observe(self.resource_path, self.handle_notification)
@@ -43,18 +43,16 @@ class CoAPObserver:
 
     def handle_notification(self, response):
         """
-        Gestisce le notifiche ricevute dalla risorsa osservabile e invia tramite WebSocket.
+        Handles notifications received from the observable resource and sends via WebSocket.        
         """
         if response:
             payload_str = response.payload.decode('utf-8') if isinstance(response.payload, bytes) else response.payload
             print(f"Raw payload: {payload_str}")
             global sowing_status
             try:
-                # Converti il payload JSON in un dizionario
                 data = json.loads(payload_str)
                 print(f"Parsed JSON data: {data}")
 
-                # Tratta i dati
                 complete = data.get("complete")
                 active = data.get("active")
 
@@ -84,14 +82,14 @@ class CoAPObserver:
 
     def send_websocket_update(self, status):
         """
-        Invia lo stato aggiornato tramite WebSocket.
+        Send updated status via WebSocket.
         """
         with app.app_context():
             socketio.emit('sowing_status', {'status': status})
     
     def stop_observing(self):
         """
-        Termina l'osservazione e chiude il client.
+        End the observation and close the client.
         """
         self.client.stop()
         print("Stopped observing.")
@@ -136,6 +134,15 @@ def sowing_control():
 # RESTful endpoints
 @app.route("/sowing", methods=["POST"])
 def start_sowing():
+    """
+    Initializes and starts the sowing process, if not already started.
+
+    Returns:
+        Response: A JSON response indicating the result of the operation:
+            - 200 if the sowing process is successfully initialized.
+            - 400 if the sowing process has already been initialized or if required fields are missing.
+            - 500 if an error occurs, such as actuator not found or failed COAP communication.
+    """  
     global sowing_initialized, sowing_status
     with lock:
         if sowing_initialized:
@@ -188,8 +195,18 @@ def start_sowing():
             # Return success message
             return jsonify({"message": "Sowing initialized", "field_id": field_id}), 200
 
+
 @app.route("/sowing", methods=["PUT"])
 def change_sowing_status():
+    """
+    Toggles the sowing process between 'In progress' and 'Paused' states, if sowing has been initialized.
+
+    Returns:
+        Response: A JSON response indicating the result of the operation:
+            - 200 if the sowing process was successfully paused or resumed.
+            - 400 if the sowing process was not initialized.
+            - 500 if an error occurred, such as the failure to find the actuator's IP or change the sowing status.
+    """    
     global sowing_initialized, sowing_status
     with lock:
         if sowing_initialized:
@@ -223,8 +240,19 @@ def change_sowing_status():
             # Return error if sowing was not initialized
             return jsonify({"message": "Sowing not initialized"}), 400
 
+
 @app.route("/sowing", methods=["DELETE"])
 def stop_sowing():
+    """ 
+    Stops the sowing process if it has been initialized.
+
+    Returns:
+        Response: A JSON response indicating the result of the operation:
+            - 200 if the sowing process was successfully stopped.
+            - 400 if the sowing process was not initialized.
+            - 500 if an error occurred, such as the failure to find the actuator's IP or stop the sowing process.
+
+    """    
     global sowing_initialized, sowing_status
     with lock:
         if sowing_initialized:
@@ -255,24 +283,38 @@ def stop_sowing():
 
 @app.route("/sowing", methods=["GET"])
 def get_sowing_percentage():
+    """
+    Retrieves the sowing progress for a specific field, if the sowing process is in progress.
+
+    Returns:
+        Response: A JSON response containing:
+            - "progress_info" (dict or None): The progress data of the requested field, if available.
+            - "status" (str): The current sowing status.
+            - Appropriate HTTP status codes:
+                - 200 if the request is successful.
+                - 400 if the field_id parameter is invalid.
+                - 404 if the field is not found.
+                - 409 if the sowing process is not in progress.
+                - 500 if an unexpected error occurs.
+    """
     global sowing_status
     with lock:
         if sowing_status == "In progress":
-            # Ottieni l'ID del campo dalla richiesta
+            # Get the field ID from the request
             field_id = request.args.get("field_id")
             
-            # Valida l'ID del campo
+            # Validate the field ID
             if not field_id or not field_id.isdigit():
                 return jsonify({"message": "Invalid field_id parameter"}), 400
 
             field_id = int(field_id)
             
             try:
-                # Ottieni il progresso del campo
+                # Get the progress of the field
                 progress_info = get_field_progress(field_id)
                 
                 if progress_info:
-                    # Combina i dati di progresso con lo stato della semina
+                    # Combine the progress data with the sowing status
                     response_data = {
                         "progress_info": progress_info,
                         "status": sowing_status
@@ -284,18 +326,17 @@ def get_sowing_percentage():
             except FieldNotFoundError:
                 return jsonify({"message": "Field not found"}), 404
             except Exception as e:
-                # Logga l'eccezione e restituisci un messaggio di errore generico
+                # Log the exception and return a generic error message
                 app.logger.error(f"An unexpected error occurred: {e}")
                 return jsonify({"message": "An unexpected error occurred"}), 500
         
         else:
-            # Restituisci un errore se la semina non è in corso, includendo lo stato della semina
+            # Return an error if sowing is not in progress, including the sowing status
             response_data = {
                 "progress_info": None,
                 "status": sowing_status
             }
             return jsonify(response_data), 409
-
 
 if __name__ == "__main__":
     # Run the Flask application in debug mode
