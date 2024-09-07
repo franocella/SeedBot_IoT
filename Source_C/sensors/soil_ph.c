@@ -9,10 +9,10 @@
 #include "gaussian.h"
 
 // Constants for CoAP registration
-#define SERVER_EP "coap://[fd00::1]:5683" // Indirizzo del server CoAP
-#define REGISTER_URL "/register"          // Endpoint di registrazione
+#define SERVER_EP "coap://[fd00::1]:5683" // server CoAP registration
+#define REGISTER_URL "/register"          // registration endpoint
 
-// Costanti per le medie e le deviazioni standard 
+// mean and standard deviation 
 #define MEAN_PH          6.469480
 #define STD_PH           1.2
 
@@ -22,7 +22,7 @@
 static int max_registration_retry = MAX_REGISTRATION_RETRY;
 
 
-// Funzione per simulare i dati 
+// function to simulate data 
 int simulate_soil_ph() {
     int ph = gaussian(MEAN_PH, STD_PH);
     if (ph < 3.5) ph = 3.5;
@@ -30,7 +30,7 @@ int simulate_soil_ph() {
     return ph;
 }
 
-// Handler per le richieste GET (lettura dei dati del suolo)
+// Handler for GET requests (reading soil pH)
 static void res_get_handler_soil_ph(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset) {
     int ph = simulate_soil_ph();
     int len = snprintf((char *)buffer, preferred_size, "{\"ph\":%d}", ph);
@@ -39,7 +39,7 @@ static void res_get_handler_soil_ph(coap_message_t *request, coap_message_t *res
     coap_set_payload(response, buffer, len);
 }
 
-// Definizione della risorsa per il sensore di pH e umidità del suolo
+// resoutce definition for pH sensor
 RESOURCE(res_soil_ph,
          "title=\"Soil pH\";rt=\"ph",
          res_get_handler_soil_ph,
@@ -47,7 +47,7 @@ RESOURCE(res_soil_ph,
          NULL,
          NULL);
 
-// Handler per la risposta alla registrazione CoAP
+// Handler for response to the CoAP registration
 static void client_chunk_handler(coap_message_t *response) {
     if (response == NULL) {
         printf("Request timed out\n");
@@ -70,22 +70,22 @@ PROCESS_THREAD(soil_sensor_server, ev, data) {
 
     printf("Ph Sensor CoAP Server Started\n");
 
-    // Attivare la risorsa con il percorso corretto
+    // activate the resource with the correct path
     coap_activate_resource(&res_soil_ph, "ph");
 
     while (max_registration_retry > 0) {
-        /* -------------- REGISTRAZIONE --------------*/
-        // Analizza l'endpoint del server e prepara la richiesta di registrazione
+        /* -------------- REGISTRATION --------------*/
+        // Analyze the server endpoint and prepare the registration request
         coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &main_server_ep);
         coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
         coap_set_header_uri_path(request, REGISTER_URL);
         const char msg[] = "ph";
         coap_set_payload(request, (uint8_t *)msg, sizeof(msg) - 1);
 
-        // Invia la richiesta di registrazione e gestisce la risposta
+        // send the registration request and handle the response
         COAP_BLOCKING_REQUEST(&main_server_ep, request, client_chunk_handler);
 
-        // Se la registrazione è fallita, attendi e riprova
+        // if the registration failed, wait and retry
         if (max_registration_retry > 0) {
             etimer_set(&registration_timer, 30 * CLOCK_SECOND);
             PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&registration_timer));
