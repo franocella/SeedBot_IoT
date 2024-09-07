@@ -16,10 +16,10 @@ static int ph_data = 0;
 static int moisture_data = 0;
 static int temperature_data = 0;
 
-// Flag per controllare l'uscita dal ciclo
+// Flag to check the output from the cycle
 static short int exit_flag = 0;
 static int seed_type = -1;
-// Inizializza mov_data
+// Initialize mov_data
 
 static movement_grid_t mov_data = {
     .length = 10,
@@ -100,25 +100,25 @@ static void sowing_post_handler(coap_message_t *request, coap_message_t *respons
    const uint8_t *payload;
    int payload_len = coap_get_payload(request, &payload);
 
-   // Variabili per i parametri del movimento
+   // Variables for the movement parameters
    int length = 0, width = 0, square_size = 0, field_id;
 
    // Default status code for error handling
    coap_status_t response_code = BAD_REQUEST_4_00; // Set to BAD_REQUEST by default
 
-   // Estrarre i dati del payload se esiste
+   // Extract payload data if existent
    if (payload_len > 0)
    {
-      // Usare sscanf per estrarre length, width, e square_size
+      // Use sscanf to extract length, width, e square_size
       int extracted_values = sscanf((char *)payload, "{\"length\": %d, \"width\": %d, \"square_size\": %d, \"field_id\": %d}", &length, &width, &square_size, &field_id);
 
-      // Verificare se l'estrazione ha avuto successo
+      // Verify if the extraction was succesful
       if (extracted_values == 4 && length > 0 && width > 0 && square_size > 0 && field_id > 0)
       {
 
          mov_data.field_id = field_id;
 
-         // Se il movimento non è attivo, configurare i parametri di movimento e avviare
+         // If the movement is inactive, configure movement's parameters and start
          if (!is_movement_active())
          {
 
@@ -126,27 +126,27 @@ static void sowing_post_handler(coap_message_t *request, coap_message_t *respons
 
             start_movement();
 
-            response_code = CHANGED_2_04; // Success: Risorsa modificata con successo
+            response_code = CHANGED_2_04; // Success: Resource modified succesfully
          }
       }
    }
 
-   // Verificare lo stato del movimento e impostare il messaggio di risposta
+   // Verify the status of the movement and set the response message
    if (!is_move_complete() && is_movement_active())
    {
-      // Movimento attivo e non completato
+      // Movement active and not complete
       coap_set_header_content_format(response, TEXT_PLAIN);
       coap_set_payload(response, (uint8_t *)"Sowing process started", strlen("Sowing process started"));
    }
    else if (is_move_complete())
    {
-      // Movimento completato
+      // Movement complete
       coap_set_header_content_format(response, TEXT_PLAIN);
       coap_set_payload(response, (uint8_t *)"Sowing process already completed", strlen("Sowing process already completed"));
    }
    else if (!is_movement_active())
    {
-      // Movimento non attivo
+      // Movement not active
       coap_set_header_content_format(response, TEXT_PLAIN);
       coap_set_payload(response, (uint8_t *)"Movement not active", strlen("Movement not active"));
    }
@@ -162,44 +162,44 @@ static void sowing_put_handler(coap_message_t *request, coap_message_t *response
    {
       printf("PUT payload: %.*s\n", payload_len, (char *)payload);
 
-      // Confronto del comando ricevuto con "start" e "stop"
+      // Comparison of the received command with "start" and "stop"
       if (strncmp((const char *)payload, "start", payload_len) == 0)
       {
          if (!is_move_complete())
          {
-            start_movement(); // Avvia il movimento
+            start_movement(); // Start the movement
             coap_set_header_content_format(response, TEXT_PLAIN);
             coap_set_payload(response, (uint8_t *)"Movement started", strlen("Movement started"));
-            coap_set_status_code(response, CHANGED_2_04); // Risorsa modificata con successo
+            coap_set_status_code(response, CHANGED_2_04); // Resource modified successfully
          }
          else
          {
             coap_set_header_content_format(response, TEXT_PLAIN);
             coap_set_payload(response, (uint8_t *)"Movement already completed", strlen("Movement already completed"));
-            coap_set_status_code(response, VALID_2_03); // Operazione valida ma nessuna modifica
+            coap_set_status_code(response, VALID_2_03); // Valid operation but no modification
          }
       }
       else if (strncmp((const char *)payload, "stop", payload_len) == 0)
       {
-         stop_movement(&mov_data); // Ferma il movimento
+         stop_movement(&mov_data); // Stop the movement
          coap_set_header_content_format(response, TEXT_PLAIN);
          coap_set_payload(response, (uint8_t *)"Movement stopped", strlen("Movement stopped"));
-         coap_set_status_code(response, CHANGED_2_04); // Risorsa modificata con successo
+         coap_set_status_code(response, CHANGED_2_04); // Resource modified successfully
       }
       else
       {
-         // Comando non valido
+         // Command not valid
          coap_set_header_content_format(response, TEXT_PLAIN);
          coap_set_payload(response, (uint8_t *)"Invalid command", strlen("Invalid command"));
-         coap_set_status_code(response, BAD_REQUEST_4_00); // Richiesta non valida
+         coap_set_status_code(response, BAD_REQUEST_4_00); // Request not valid
       }
    }
    else
    {
-      // Payload mancante o non valido
+      // Missing payload or not valid
       coap_set_header_content_format(response, TEXT_PLAIN);
       coap_set_payload(response, (uint8_t *)"Empty payload", strlen("Empty payload"));
-      coap_set_status_code(response, BAD_REQUEST_4_00); // Richiesta non valida
+      coap_set_status_code(response, BAD_REQUEST_4_00); // Request not valid
    }
 }
 
@@ -207,13 +207,13 @@ static void sowing_delete_handler(coap_message_t *request, coap_message_t *respo
 {
    printf("DELETE request received.\n");
 
-   // Risposta per confermare l'eliminazione
-   coap_set_status_code(response, DELETED_2_02); // Risorsa eliminata con successo
+   // Response to confirme delete
+   coap_set_status_code(response, DELETED_2_02); // Resource deleted successfully
 
-   // Libera la struttura dati del movimento
+   // Clear the data structure of the movement
    clear_movement_info(&mov_data);
 
-   // // Imposta il flag per uscire dal ciclo
+   // Set the flag to exit the cycle
    exit_flag = 1;
 }
 
@@ -421,7 +421,7 @@ void get_measurement_callback(coap_message_t *response)
       break;
    }
 }
-// Funzione di callback per la risposta al salvataggio nel DB
+// Callback function for the response to the saving in the DB
 void save_response_callback(coap_message_t *response)
 {
 
@@ -440,7 +440,7 @@ void save_response_callback(coap_message_t *response)
    }
 }
 
-// Handler per la risposta alla registrazione CoAP
+// Handler for the responce to CoAP registration
 static void client_chunk_handler(coap_message_t *response)
 {
    if (response == NULL)
@@ -497,10 +497,10 @@ PROCESS_THREAD(device_process, ev, data)
    PROCESS_BEGIN();
    printf("Starting Actuator\n");
 
-   // Inizializza l'endpoint del server CoAP
+   // Initialize the endpoint of the CoAP server
    coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
 
-   // Attiva la risorsa
+   // Activate the resource
    coap_activate_resource(&sowing_actuator_resource, "sowing_actuator");
    coap_activate_resource(&actuator_status_res, "sowing_actuator/status");
 
@@ -575,7 +575,7 @@ PROCESS_THREAD(device_process, ev, data)
       etimer_set(&timer, 30 * CLOCK_SECOND);
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
 
-      // Controlla lo stato della struttura mov_data
+      // Check the status of mov_data structure
       if (is_movement_active(&mov_data) && !is_move_complete(&mov_data))
       {
          char endpoint_uri[64];
@@ -587,21 +587,21 @@ PROCESS_THREAD(device_process, ev, data)
          coap_endpoint_parse(endpoint_uri, strlen(endpoint_uri), &sensor_ep);
          COAP_BLOCKING_REQUEST(&sensor_ep, &request, get_measurement_callback);
 
-         // Richiesta al sensore pH
+         // Request to pH sensor
          coap_init_message(&request, COAP_TYPE_CON, COAP_GET, 0);
          coap_set_header_uri_path(&request, PH_SENSOR_URL);
          snprintf(endpoint_uri, sizeof(endpoint_uri), "coap://[%s]:5683", ph_sensor_ip);
          coap_endpoint_parse(endpoint_uri, strlen(endpoint_uri), &sensor_ep);
          COAP_BLOCKING_REQUEST(&sensor_ep, &request, get_measurement_callback);
 
-         // Richiesta al sensore di temperatura
+         // Request to the temperature sensor
          coap_init_message(&request, COAP_TYPE_CON, COAP_GET, 0);
          coap_set_header_uri_path(&request, TEMP_SENSOR_URL);
          snprintf(endpoint_uri, sizeof(endpoint_uri), "coap://[%s]:5683", temperature_sensor_ip);
          coap_endpoint_parse(endpoint_uri, strlen(endpoint_uri), &sensor_ep);
          COAP_BLOCKING_REQUEST(&sensor_ep, &request, get_measurement_callback);
 
-         // Richiesta al sensore di umidità (moisture)
+         // Request to moisture sensor
          coap_init_message(&request, COAP_TYPE_CON, COAP_GET, 0);
          coap_set_header_uri_path(&request, MOISTURE_SENSOR_URL);
          snprintf(endpoint_uri, sizeof(endpoint_uri), "coap://[%s]:5683", moisture_sensor_ip);
@@ -618,32 +618,32 @@ PROCESS_THREAD(device_process, ev, data)
 
          /*----------------------SEEDING SIMULATION-------------------------*/
 
-         // Imposta il timer per 20 secondi
+         // Set the timer for 20 seconds
          etimer_set(&sowing_timer, CLOCK_SECOND * 20);
 
          leds_on(LEDS_GREEN);
 
          printf("Seeding simulation started. Waiting...\n");
 
-         // Attendi fino alla scadenza del timer
+         // Wait until the timer expiration
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&sowing_timer));
          printf("Simulation complete.\n");
          leds_off(LEDS_GREEN);
 
          /*--------------------------SEND TO DB------------------------------*/
 
-         char payload[MSG_SIZE]; // Singola variabile per il payload
+         char payload[MSG_SIZE]; // One variable for the payload
 
-         // Inizializzazione del timer
+         // Initialization of the timer
          etimer_set(&timer, 10 * CLOCK_SECOND);
 
-         // Inizializzazione della richiesta CoAP
+         // Initialization of CoAP request
          coap_init_message(&request, COAP_TYPE_CON, COAP_POST, 0);
          coap_set_header_uri_path(&request, SAVE_URL);
-         coap_set_header_content_format(&request, APPLICATION_JSON); // Imposta il formato del contenuto a testo semplice
+         coap_set_header_content_format(&request, APPLICATION_JSON); // Set the content format to simple text
          coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
 
-         // Invio del primo payload: Informazioni su riga, colonna, e ID campo
+         // Sending of the first payload: information about row, column and field ID
          snprintf(payload, sizeof(payload),
                   "{\"row\":%d, \"col\":%d, \"field_id\":%d}",
                   mov_data.current_row, mov_data.current_col, mov_data.field_id);
@@ -652,7 +652,7 @@ PROCESS_THREAD(device_process, ev, data)
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
          etimer_reset(&timer);
 
-         // Invio del secondo payload: Dati NPK
+         // Sendind the second payload: Invio del secondo payload: NPK data
          snprintf(payload, sizeof(payload),
                   "{\"npk\":{\"n\":%d, \"p\":%d, \"k\":%d}}",
                   (int)round(npk_data.nitrogen), (int)round(npk_data.phosphorus), (int)round(npk_data.potassium));
@@ -662,7 +662,7 @@ PROCESS_THREAD(device_process, ev, data)
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
          etimer_reset(&timer);
 
-         // Invio del terzo payload: Umidità
+         // Sending the third payload: moisture
          snprintf(payload, sizeof(payload),
                   "{\"moisture\":%d}", (int)round(moisture_data));
          coap_set_payload(&request, (const uint8_t *)payload, strlen(payload));
@@ -670,7 +670,7 @@ PROCESS_THREAD(device_process, ev, data)
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
          etimer_reset(&timer);
 
-         // Invio del quarto payload: Temperatura
+         // Sending the forth payload: temperature
          snprintf(payload, sizeof(payload),
                   "{\"temp\":%d}", (int)round(temperature_data));
          coap_set_payload(&request, (const uint8_t *)payload, strlen(payload));
@@ -678,7 +678,7 @@ PROCESS_THREAD(device_process, ev, data)
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
          etimer_reset(&timer);
 
-         // Invio del sesto payload: pH
+         // Sending the fifth payload: pH
          snprintf(payload, sizeof(payload),
                   "{\"ph\":%d}", (int)round(ph_data));
          coap_set_payload(&request, (const uint8_t *)payload, strlen(payload));
@@ -686,7 +686,7 @@ PROCESS_THREAD(device_process, ev, data)
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
          etimer_reset(&timer);
 
-         // Invio del quinto payload: Tipo di seme
+         // Sending the sixth payload: seed type
          snprintf(payload, sizeof(payload),
                   "{\"seed_type\":%d}", seed_type);
          coap_set_payload(&request, (const uint8_t *)payload, strlen(payload));
@@ -694,10 +694,10 @@ PROCESS_THREAD(device_process, ev, data)
          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
          etimer_reset(&timer);
 
-         // Aggiorna la posizione
+         // Update position
          update_position(&mov_data);
 
-         // reimposto il wake up timer
+         // reset il wake up timer
          etimer_set(&timer, 30 * CLOCK_SECOND);
       }
       else
@@ -773,11 +773,11 @@ void clear_movement_info()
    mov_data.current_col = 0;
    mov_data.total_rows = 0;
    mov_data.total_cols = 0;
-   mov_data.matrix = NULL; // La matrice è stata liberata, quindi puntatore a NULL
-   mov_data.direction = 0; // Reset direzione (assumendo che 0 sia un valore neutro)
-   mov_data.field_id = 0;  // Reset ID campo
+   mov_data.matrix = NULL; // The matrix is cleared, pointer to NULL
+   mov_data.direction = 0; // Reset direction (assuming that 0 is a neutral value)
+   mov_data.field_id = 0;  // Reset field ID
 
-   // Libera la memoria allocata per la matrice (funzione già definita)
+   // Clear the allocated memory for the matrix (function already defined)
    free_matrix();
 }
 
