@@ -10,15 +10,15 @@
 
 #include "contiki-net.h"
 
-// Costanti per le medie e le deviazioni standard
+// mean and standard deviation
 #define MEAN_MOISTURE 71
 #define STD_MOISTURE 22
 
 #define MIN_MOISTURE 0   
 #define MAX_MOISTURE 100 
 
-#define SERVER_EP "coap://[fd00::1]:5683" // Indirizzo del server CoAP
-#define REGISTER_URL "/register"          // Endpoint di registrazione
+#define SERVER_EP "coap://[fd00::1]:5683" // server CoAP address
+#define REGISTER_URL "/register"          // registration endpoint
 #define MAX_REGISTRATION_RETRY 5
 
 static int max_registration_retry = MAX_REGISTRATION_RETRY;
@@ -45,7 +45,7 @@ static void res_get_handler(coap_message_t *request, coap_message_t *response, u
     coap_set_payload(response, buffer, payload_len);
 }
 
-// Definizione della risorsa per il sensore di pH e umidità del suolo
+// Defining resource for soil moisture
 RESOURCE(res_soil_moisture,
          "title=\"Soil Moisture\";rt=\"moisture",
          res_get_handler,
@@ -53,7 +53,7 @@ RESOURCE(res_soil_moisture,
          NULL,
          NULL);
 
-// Handler per la risposta alla registrazione CoAP
+// Handler for the response to the CoAP registration
 static void client_chunk_handler(coap_message_t *response)
 {
     if (response == NULL)
@@ -81,23 +81,23 @@ PROCESS_THREAD(soil_sensor_server, ev, data)
 
     printf("Moisture Sensor Server Started\n");
 
-    // Attivare la risorsa con il percorso corretto
+    // Activate the resource with the right path
     coap_activate_resource(&res_soil_moisture, "moisture");
 
     while (max_registration_retry > 0)
     {
-        /* -------------- REGISTRAZIONE --------------*/
-        // Analizza l'endpoint del server e prepara la richiesta di registrazione
+        /* -------------- REGISTRATION --------------*/
+        // Analyze the server endpoint and prepare the registration request
         coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &main_server_ep);
         coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
         coap_set_header_uri_path(request, REGISTER_URL);
         const char msg[] = "moisture";
         coap_set_payload(request, (uint8_t *)msg, sizeof(msg) - 1);
 
-        // Invia la richiesta di registrazione e gestisce la risposta
+        // send the registratione request and handle the response
         COAP_BLOCKING_REQUEST(&main_server_ep, request, client_chunk_handler);
 
-        // Se la registrazione è fallita, attendi e riprova
+        // if the registration failed, wait and try again
         if (max_registration_retry > 0)
         {
             etimer_set(&registration_timer, 30 * CLOCK_SECOND);
