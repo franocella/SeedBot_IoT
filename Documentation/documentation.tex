@@ -69,23 +69,23 @@
 \definecolor{white}{RGB}{255,255,255} % Define white color
 
 
-% Configuration for hyperref to remove red margins and color the links
-\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    filecolor=magenta,
-    urlcolor=myPurple,
-    linkbordercolor={0 0 0} % Set link border color to black (invisible)
-}
+
+% Define shades of green
+\definecolor{myDarkGreen}{RGB}{0, 100, 0} % Dark green
+\definecolor{myGreen}{RGB}{0, 128, 0} % Medium green
+\definecolor{myLightGreen}{RGB}{144, 238, 144} % Light green
+
+
+
 
 % Configuration for section titles
-\titleformat{\section}[hang]{\Large\bfseries\color{myPurple}}{}{0px}{}[\titlerule]
-\titleformat{\subsection}[hang]{\large\bfseries\color{myLightPurple}}{}{0em}{}
-\titleformat{\subsubsection}[hang]{\bfseries\color{myPurple}}{}{0em}{}
+\titleformat{\section}[hang]{\Large\bfseries\color{myDarkGreen}}{}{0px}{}[\titlerule]
+\titleformat{\subsection}[hang]{\large\bfseries\color{myGreen}}{}{0em}{}
+\titleformat{\subsubsection}[hang]{\bfseries\color{myLightGreen}}{}{0em}{}
 
 % Configuration for chapter titles
 \titleformat{\chapter}[display]
-  {\normalfont\Large\bfseries\color{myPurple}}{}{-80pt}{\LARGE}
+  {\normalfont\Large\bfseries\color{myGreen}}{}{-80pt}{\LARGE}
 \renewcommand{\chaptername}{} % Remove the word "Chapter" and the number from the title
 \setcounter{tocdepth}{1} % Include only chapters and sections in the table of contents
 
