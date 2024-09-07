@@ -36,19 +36,6 @@ int simulate_soil_moisture()
     return moisture;
 }
 
-// Funzione per simulare i dati
-int simulate_soil_moisture()
-{
-    int moisture = gaussian(MEAN_MOISTURE, STD_MOISTURE);
-    
-    if (moisture < MIN_MOISTURE) {
-        moisture = MIN_MOISTURE;  
-    } else if (moisture > MAX_MOISTURE) {
-        moisture = MAX_MOISTURE;  
-    }
-    
-    return moisture;
-}
 
 static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
