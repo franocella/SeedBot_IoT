@@ -1,0 +1,163 @@
+\documentclass[a4paper,titlepage]{report}
+
+
+
+% Packages for graphics and layout
+\usepackage{graphicx}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{titlesec}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{colortbl}
+\usepackage{caption}
+\usepackage{calc}
+\usepackage{ragged2e}
+\usepackage{mdframed}
+\usepackage{tikz}
+\usepackage{svg}
+
+\usepackage[hidelinks]{hyperref}
+\usepackage[margin=1in]{geometry} % Riduzione dei margini
+
+% Packages for math and tables
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{cellspace} % For adding padding in table cells
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{longtable}
+
+% Packages for references and the table of contents
+\usepackage{hyperref} % For links in the table of contents
+\usepackage{tocbibind} % To include the table of contents in the table of contents
+
+% Packages for code
+\usepackage{listings}
+\usepackage{courier} % Font for code
+\usepackage{fancyvrb}
+\usepackage{lipsum} % For dummy text
+
+% Remove paragraph indentation and add space between paragraphs
+\usepackage{parskip}  
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Set the table format for the combiner and in mapper part
+\setlength{\extrarowheight}{5pt} % Extra vertical padding
+\setlength{\tabcolsep}{10pt} % Extra horizontal padding
+
+% Define custom colors
+\definecolor{myBlue}{rgb}{0.0745, 0.2157, 0.4118}
+\definecolor{myLightBlue}{rgb}{0, 0.5647, 0.5843}
+\definecolor{myGray}{RGB}{192,197,206}
+\definecolor{myPurple}{rgb}{0.5, 0.0, 0.5} % Esempio di colore viola
+\definecolor{myLightPurple}{HTML}{CC0066} % Esempio di colore viola chiaro
+\definecolor{jsonString}{HTML}{111258}
+\definecolor{numb}{RGB}{255,0,0}
+\definecolor{punct}{RGB}{0,0,255}
+\definecolor{delim}{RGB}{20,105,176}
+\definecolor{comment}{RGB}{0,128,0}
+\definecolor{string}{RGB}{163,21,21}
+\definecolor{keyword}{RGB}{0,0,255}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+\definecolor{java_keyword}{HTML}{BF9B30}
+\definecolor{java_comment}{HTML}{0000FF}
+\definecolor{mybackgroundcolor}{RGB}{240, 240, 240} % Light gray background
+\definecolor{black}{RGB}{0, 0, 0} % Define black color
+\definecolor{jsondoc}{HTML}{C4E3E8}
+\definecolor{red}{HTML}{8F1D39}
+\definecolor{white}{RGB}{255,255,255} % Define white color
+
+
+% Configuration for hyperref to remove red margins and color the links
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    urlcolor=myPurple,
+    linkbordercolor={0 0 0} % Set link border color to black (invisible)
+}
+
+% Configuration for section titles
+\titleformat{\section}[hang]{\Large\bfseries\color{myPurple}}{}{0px}{}[\titlerule]
+\titleformat{\subsection}[hang]{\large\bfseries\color{myLightPurple}}{}{0em}{}
+\titleformat{\subsubsection}[hang]{\bfseries\color{myPurple}}{}{0em}{}
+
+% Configuration for chapter titles
+\titleformat{\chapter}[display]
+  {\normalfont\Large\bfseries\color{myPurple}}{}{-80pt}{\LARGE}
+\renewcommand{\chaptername}{} % Remove the word "Chapter" and the number from the title
+\setcounter{tocdepth}{1} % Include only chapters and sections in the table of contents
+
+% Style for code
+\lstdefinestyle{mystyle}{
+    language=Java,
+    backgroundcolor=\color{mybackgroundcolor}, % Background color
+    commentstyle=\color{darkgreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{orange},
+    basicstyle=\ttfamily\footnotesize,
+    framesep=10pt, % padding between frame and text
+    xleftmargin=10pt, % left margin
+    xrightmargin=10pt, % right margin
+    aboveskip=10pt, % Top padding
+    belowskip=10pt, % Bottom padding
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+% Define a custom style for mdframed
+\mdfdefinestyle{customstyle}{
+    linecolor=myBlue, % Border color
+    linewidth=2pt, % Border width
+    roundcorner=10pt, % Rounded corners
+    backgroundcolor=mybackgroundcolor, % Background color
+    innertopmargin=10pt, % Top padding
+    innerbottommargin=10pt, % Bottom padding
+    innerrightmargin=10pt, % Right padding
+    innerleftmargin=10pt, % Left padding
+    skipabove=20pt, % Space above the frame
+    skipbelow=20pt, % Space below the frame
+    fontcolor=black, % Text color
+}
+
+% Define a custom style for mdframed
+\mdfdefinestyle{customstyle2}{
+    linecolor=myBlue, % Border color
+    linewidth=2pt, % Border width
+    roundcorner=10pt, % Rounded corners
+    backgroundcolor=white, % Background color
+    innertopmargin=10pt, % Top padding
+    innerbottommargin=10pt, % Bottom padding
+    innerrightmargin=10pt, % Right padding
+    innerleftmargin=10pt, % Left padding
+    skipabove=20pt, % Space above the frame
+    skipbelow=20pt, % Space below the frame
+    fontcolor=black, % Text color
+}
+
+\begin{document}
+
+\input{chapters/0_Coverpage.tex}
+
+\tableofcontents
+
+\input{chapters/1_Introduction.tex}
+\input{chapters/3_Architecture_Load.tex}
+\input{chapters/4_Machine_Learning_Model.tex}
+\input{chapters/5_Code_and_Software.tex}
+\input{chapters/6_Grafana.tex}
+\input{chapters/8_Conclusion.tex}
+
+
+
+\end{document}

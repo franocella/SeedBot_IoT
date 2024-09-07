@@ -1,0 +1,10 @@
+\chapter{Machine Learning Model}
+
+The initial dataset was taken from \href{https://www.kaggle.com/code/mdshariaremonshaikat/optimizing-agricultural-production-with-7-ml-model/input}{kaggle}. The dataset contains information about different crops and their requirements in terms of soil conditions, such as nitrogen, phosphorus, and potassium levels, soil moisture, pH and temperature. 
+The types of crop include: rice, chickpea, kidney beans, lentil, pomegranate, banana, mango, papaya, etc.\\
+The dataset was preprocessed to remove missing values and was then split into training and testing sets.\\
+To create the model, multiple machine learning methods were used and evaluated for their accuracy in predicting crop suitability. In particular, classifiers like Logistic Regression, Random Forest, Gradient Boosting, Support Vector Machines (SVM), Naive Bayes, Decision Tree, and K-Nearest Neighbors (KNN) were used.\\
+The final model was trained using the Decision Tree algorithm, which achieved an accuracy of 98.64\% on the test set.
+The Decision Tree algorithm was chosen not only for its high accuracy but also for its interpretability, which is crucial in agricultural applications where understanding the decision-making process is as important as the prediction itself. The tree-based structure of this algorithm allows for clear visualization of how specific soil conditions lead to the recommendation of certain crops, making it easier for end-users, such as farmers, to trust and follow the model's advice.
+The model was exported using the Python library \texttt{emlearn} and integrated into the SeedBot system to make real-time crop recommendations based on soil conditions, providing a practical tool to optimize agricultural production.
+
