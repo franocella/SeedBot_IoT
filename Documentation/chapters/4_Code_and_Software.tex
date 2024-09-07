@@ -219,17 +219,10 @@ The server CoAP is used to manage the communication between the sensors and the 
                 engine = create_engine(DATABASE_URL)
         
                 Base.metadata.create_all(engine)
-                logger.info(f"Tabelle create con successo nel database '{engine.url.database}'.")
+                logger.info(f"Tables successfully created in the database '{engine.url.database}'.")
         
             except SQLAlchemyError as e:
-                logger.error(f"Errore durante la creazione delle tabelle: {str(e)}")
-
-
+                logger.error(f"Error during the creation of tables: {str(e)}")
         \end{lstlisting}
-
-    \item \textit{Response Handling and Logging:}
-          \begin{itemize}
-              \item The system logs all key events, such as sensor registrations, data retrievals, and actuator commands, for monitoring and debugging purposes.
-          \end{itemize}
 \end{enumerate}
 
