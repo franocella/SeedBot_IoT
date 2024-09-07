@@ -212,10 +212,10 @@ def create_tables():
         
         # Creazione delle tabelle
         Base.metadata.create_all(engine)
-        logger.info(f"Tabelle create con successo nel database '{engine.url.database}'.")
+        logger.info(f"Tables successfully created in the database '{engine.url.database}'.")
         
     except SQLAlchemyError as e:
-        logger.error(f"Errore durante la creazione delle tabelle: {str(e)}")
+        logger.error(f"Error during the creation of tables: {str(e)}")
 
 # Funzione per creare una sessione
 def get_session():
