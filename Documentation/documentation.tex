@@ -115,35 +115,35 @@
     tabsize=2
 }
 
-% Define a custom style for mdframed
-\mdfdefinestyle{customstyle}{
-    linecolor=myBlue, % Border color
-    linewidth=2pt, % Border width
-    roundcorner=10pt, % Rounded corners
-    backgroundcolor=mybackgroundcolor, % Background color
-    innertopmargin=10pt, % Top padding
-    innerbottommargin=10pt, % Bottom padding
-    innerrightmargin=10pt, % Right padding
-    innerleftmargin=10pt, % Left padding
-    skipabove=20pt, % Space above the frame
-    skipbelow=20pt, % Space below the frame
-    fontcolor=black, % Text color
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{white},   % background color
+    basicstyle=\ttfamily\footnotesize, % basic font style
+    breaklines=true,                  % line breaking
+    captionpos=b,                     % caption position
+    numbers=left,                     % line numbers on the left
+    numbersep=5pt,                    % distance of line numbers from the code
+    showspaces=false,                % don't show spaces
+    showstringspaces=false,          % don't show string spaces
+    showtabs=false,                  % don't show tabs
+    tabsize=2                         % tab size
 }
 
-% Define a custom style for mdframed
-\mdfdefinestyle{customstyle2}{
-    linecolor=myBlue, % Border color
-    linewidth=2pt, % Border width
-    roundcorner=10pt, % Rounded corners
-    backgroundcolor=white, % Background color
-    innertopmargin=10pt, % Top padding
-    innerbottommargin=10pt, % Bottom padding
-    innerrightmargin=10pt, % Right padding
-    innerleftmargin=10pt, % Left padding
-    skipabove=20pt, % Space above the frame
-    skipbelow=20pt, % Space below the frame
-    fontcolor=black, % Text color
+\lstset{style=mystyle}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    captionpos=b,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
 }
+
+\lstset{style=pythonstyle}
 
 \begin{document}
 

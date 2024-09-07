@@ -1,17 +1,18 @@
 \chapter{Code and Software}
 
-The code for SeedBot is written in C and Python. The nRF52840 devices run the C code, while the cloud and remote applications are written in Python. The code is available on GitHub at the following \href {https://github.com/}{link}.
+The code for SeedBot is written in C and Python. The nRF52840 devices run the C code, while the cloud and remote applications are written in Python. The code is available on GitHub at the following \href {https://github.com/franocella/SeedBot_IoT}{link}.
 
 
 
-\subsection{C Code}
+\section{C Code}
 
 
 
 The actuator code is responsible for controlling the movement and seed distribution of the robot. It receives commands from the machine learning model and executes them accordingly.
+The sensors code reads the generated data and sends it to the border router for processing.
 
 
-\textbf{Actuator Workflow}
+\subsection{Actuator Workflow}
 
 \begin{enumerate}
     \item \textit{Initialization and Registration:}
@@ -20,6 +21,30 @@ The actuator code is responsible for controlling the movement and seed distribut
          registration request to the server with the actuator's name and its IPv6 address. The\\
          registration can be attempted 5 times.
     \end{itemize}
+
+    \begin{lstlisting}[language=C]
+        while (max_registration_retry > 0)
+        {
+            coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
+            coap_init_message(reg_request, COAP_TYPE_CON, COAP_POST, 0);
+            coap_set_header_uri_path(reg_request, REGISTER_URL);
+            const char msg[] = "sowing_actuator";
+            coap_set_payload(reg_request, (uint8_t *)msg, sizeof(msg) - 1);
+        
+            // Send the registration request and handle the response
+            COAP_BLOCKING_REQUEST(&server_ep, reg_request, client_chunk_handler);
+        
+            if (max_registration_retry > 0)
+            {
+                // Wait and retry if registration failed
+                etimer_set(&timer, 15 * CLOCK_SECOND);
+                PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
+        
+                // Decrement retry count if registration failed
+                max_registration_retry--;
+            }
+        }
+    \end{lstlisting}
     
     \item \textit{Discovery of Sensor IP Addresses:}
     \begin{itemize}
@@ -39,6 +64,37 @@ The actuator code is responsible for controlling the movement and seed distribut
         \item A green LED is turned on to indicate that the seeding operation is in progress.
         \item The actuator can start or pause the movement of the robot based on the pressing of the button.
     \end{itemize}
+
+    \begin{lstlisting}[language=C]
+        PROCESS_THREAD(button_process, ev, data)
+        {
+            PROCESS_BEGIN();
+        
+            while (!exit_flag)
+            {
+                // Wait for the button release event
+                PROCESS_YIELD();
+        
+                if (ev == button_hal_press_event)
+                {
+                    // Check if the event is indeed a button release event
+                    if (is_movement_active(&mov_data))
+                    {
+                        stop_movement(&mov_data);
+                        printf("Pause request initiated via button\n");
+                    }
+                    else
+                    {
+                        start_movement(&mov_data);
+                        printf("Movement request initiated via button\n");
+                    }
+                }
+            }
+        
+            PROCESS_END();
+        }
+        \end{lstlisting}
+   
     
     \item \textit{Updating the Central CoAP Server:}
     \begin{itemize}
@@ -55,10 +111,9 @@ The actuator code is responsible for controlling the movement and seed distribut
 \newpage
 
 
-The sensors code reads the generated data and sends it to the border router for processing.
 
 
-\textbf{Sensors Workflow}
+\subsection{Sensors Workflow}
 
 \begin{enumerate}
     \item \textit{Initialization and Registration:}
@@ -86,6 +141,16 @@ The sensors code reads the generated data and sends it to the border router for 
     \begin{itemize}
         \item Each sensor responds to CoAP GET requests. It the simulated data and returns it in a JSON format within the CoAP response.
     \end{itemize}
+    \begin{lstlisting}[language=C]
+    static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+    {
+        int moisture = simulate_soil_moisture();
+        coap_set_header_content_format(response, APPLICATION_JSON);
+        int payload_len = snprintf((char *)buffer, preferred_size, "{\"moisture\":%d}", moisture);
+        coap_set_payload(response, buffer, payload_len);
+    }
+        
+    \end{lstlisting}
 
     \item \textit{Retry Mechanism for Registration:}
     \begin{itemize}
@@ -102,7 +167,7 @@ The sensors code reads the generated data and sends it to the border router for 
 
 \newpage
 
-\subsection{Python Code}
+\section{Python Code}
 
 
 The Python code is responsible for managing the cloud and remote applications. The cloud application stores data collected from the sensors in a database, while the remote control application allows users to interact with the system via a graphical interface.\\
@@ -130,6 +195,30 @@ The server CoAP is used to manage the communication between the sensors and the 
     \begin{itemize}
         \item Sensors periodically send data (e.g., soil moisture, temperature) to the CoAP server via POST requests. The server processes these requests, extracts the data, and stores it in the database.
     \end{itemize}
+
+    \begin{lstlisting}[language=Python]
+        def render_POST_advanced(self, request, response):
+            
+            print("Received advanced POST request.")
+            
+            try:
+                payload_str = request.payload
+                print(f"Raw payload: {payload_str}")
+                payload_str = replace_commas_with_dots(payload_str)
+        
+                if not payload_str:
+                    response.code = defines.Codes.BAD_REQUEST.number
+                    response.payload = "No payload received"
+                    return self, response
+        
+                # Parse the JSON payload
+                payload = json.loads(payload_str)
+                print(f"Parsed JSON payload: {payload}")
+        
+                
+                global received_data
+                received_data.update(payload)
+        \end{lstlisting}
     
     \item \textit{Actuator Control:} 
     \begin{itemize}
@@ -147,6 +236,19 @@ The server CoAP is used to manage the communication between the sensors and the 
         \item Both \texttt{app.py} and \texttt{coap\_server.py} interact with the MySQL database through the\\
         \texttt{db\_manager\_mysql.py} module. This module handles all CRUD operations, ensuring that sensor data, actuator statuses, and other critical information are properly stored and retrieved as needed.
     \end{itemize}
+    \begin{lstlisting}[language=Python]
+        def create_tables():
+            try:
+                engine = create_engine(DATABASE_URL)
+        
+                Base.metadata.create_all(engine)
+                logger.info(f"Tabelle create con successo nel database '{engine.url.database}'.")
+        
+            except SQLAlchemyError as e:
+                logger.error(f"Errore durante la creazione delle tabelle: {str(e)}")
+
+
+        \end{lstlisting}
     
     \item \textit{Response Handling and Logging:} 
     \begin{itemize}

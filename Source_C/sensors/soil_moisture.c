@@ -14,16 +14,40 @@
 #define MEAN_MOISTURE 71
 #define STD_MOISTURE 22
 
+#define MIN_MOISTURE 0   
+#define MAX_MOISTURE 100 
+
 #define SERVER_EP "coap://[fd00::1]:5683" // Indirizzo del server CoAP
 #define REGISTER_URL "/register"          // Endpoint di registrazione
 #define MAX_REGISTRATION_RETRY 5
 
 static int max_registration_retry = MAX_REGISTRATION_RETRY;
 
+int simulate_soil_moisture()
+{
+    int moisture = gaussian(MEAN_MOISTURE, STD_MOISTURE);
+    
+    if (moisture < MIN_MOISTURE) {
+        moisture = MIN_MOISTURE;  
+    } else if (moisture > MAX_MOISTURE) {
+        moisture = MAX_MOISTURE;  
+    }
+    
+    return moisture;
+}
+
 // Funzione per simulare i dati
 int simulate_soil_moisture()
 {
-    return gaussian(MEAN_MOISTURE, STD_MOISTURE);;
+    int moisture = gaussian(MEAN_MOISTURE, STD_MOISTURE);
+    
+    if (moisture < MIN_MOISTURE) {
+        moisture = MIN_MOISTURE;  
+    } else if (moisture > MAX_MOISTURE) {
+        moisture = MAX_MOISTURE;  
+    }
+    
+    return moisture;
 }
 
 static void res_get_handler(coap_message_t *request, coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
