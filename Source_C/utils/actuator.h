@@ -43,10 +43,10 @@ Actuator Workflow
 #define MOISTURE_SENSOR 3
 #define TEMP_SENSOR 4
 
-#define SERVER_EP "coap://[fd00::1]:5683" // Indirizzo del server CoAP
-#define REGISTER_URL "/register"          // Endpoint di registrazione
-#define DISCOVER_URL "/discover"          // Endpoint di discovery
-#define SAVE_URL "/save"                  // Endpoint per salvare i dati
+#define SERVER_EP "coap://[fd00::1]:5683" // server CoAP address
+#define REGISTER_URL "/register"          // registration endpoint 
+#define DISCOVER_URL "/discover"          // discovery endpoint
+#define SAVE_URL "/save"                  // endpoint to save the data
 
 #define NPK_SENSOR_URL "/npk"
 #define PH_SENSOR_URL "/ph"
@@ -54,7 +54,7 @@ Actuator Workflow
 #define TEMP_SENSOR_URL "/temperature"
 
 #define MAX_REGISTRATION_RETRY 5
-#define MAX_IPV6_LENGTH 46 // Lunghezza massima per un indirizzo IPv6 45 + 1 del terminatore
+#define MAX_IPV6_LENGTH 46 // Maximum length for IPv6 address 45 + 1 of terminator character
 #define PAYLOAD_SIZE 256
 
 #define MSG_SIZE 64
