@@ -10,8 +10,8 @@
 
 
 // Constants for CoAP registration
-#define SERVER_EP "coap://[fd00::1]:5683" // Indirizzo del server CoAP
-#define REGISTER_URL "/register"          // Endpoint di registrazione
+#define SERVER_EP "coap://[fd00::1]:5683" // server CoAP address
+#define REGISTER_URL "/register"          // registration endpoint
 #define MAX_REGISTRATION_RETRY 5
 
 // Definition of the structure for npk values
@@ -77,7 +77,7 @@ static void res_get_handler(coap_message_t *request, coap_message_t *response, u
     coap_set_payload(response, (uint8_t *)buffer, len);
 }
 
-// Handler per la risposta alla registrazione CoAP
+// Handler for the response to CoAP registration
 static void client_chunk_handler(coap_message_t *response) {
     if (response == NULL) {
         printf("Request timed out\n");
