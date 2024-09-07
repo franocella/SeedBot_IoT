@@ -1,0 +1,216 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2 {
+    color: #1b5e20;
+    margin: 0; /* Remove default margin from headings */
+}
+
+/* Navbar */
+.navbar {
+    background-color: #43a047;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    position: fixed;  /* Fixed position */
+    top: 0;           /* At the top of the page */
+    width: 100%;      /* Full width */
+    box-sizing: border-box;  /* Include padding in the width */
+    z-index: 1000;    /* On top of other elements */
+    margin-bottom: 0; /* Remove space below navbar */
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar-links {
+    list-style-type: none;
+    display: flex;
+    gap: 2rem;
+    margin: 0;  /* Removes default margin */
+    padding: 0; /* Removes default padding */
+}
+
+.navbar-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.navbar-links a:hover {
+    text-decoration: underline;
+}
+
+/* Main Header */
+.main-header {
+    text-align: center;
+    padding: 5rem 2rem 2rem;  /* Adjusted to prevent overlap with fixed navbar */
+    margin-top: 60px;  /* Margin to account for the fixed navbar */
+}
+
+.main-header h1 {
+    font-size: 3rem;
+}
+
+.main-header h2 {
+    font-size: 1.5rem;
+    color: #4caf50;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;  /* Sets a maximum width for the container */
+    margin: 0 auto;     /* Centers the container horizontally */
+    padding: 2rem;      /* Adds padding around the content */
+    box-sizing: border-box;  /* Ensures padding does not increase overall width */
+}
+
+/* Main Image */
+.main-image {
+    width: 100%; /* Makes the image responsive to the width of its container */
+    height: auto; /* Maintains aspect ratio */
+    border: 2px solid #000; /* Adds a border around the image */
+    border-radius: 10px; /* Rounds the corners of the image */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Adds a shadow for depth */
+    display: block; /* Removes any space below the image */
+    max-width: 600px; /* Limits the maximum width of the image */
+    margin: 0 auto; /* Centers the image horizontally */
+}
+
+/* Description */
+.description {
+    font-size: 16px; /* Sets the font size */
+    line-height: 1.6; /* Adjusts the line height for better readability */
+    color: #333; /* Sets the text color */
+    margin-top: 20px; /* Adds space above the paragraph */
+    margin-bottom: 20px; /* Adds space below the paragraph */
+    padding: 10px; /* Adds padding inside the paragraph */
+    background-color: #f9f9f9; /* Sets a light background color */
+    border-radius: 5px; /* Rounds the corners of the paragraph background */
+    max-width: 800px; /* Limits the width of the paragraph */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+    text-align: justify; /* Justifies the text for a neat look */
+    margin: 20px auto; /* Centers the paragraph and adds vertical spacing */
+}
+
+/* Sowing Form */
+.sowing-form {
+    display: flex;
+    flex-direction: column;  /* Makes form elements stack vertically */
+    gap: 1rem;               /* Adds space between form elements */
+    max-width: 500px;        /* Sets a max width for the form */
+    margin: 2rem auto;       /* Centers form on the page */
+}
+
+.sowing-form .form-group {
+    margin-bottom: 1rem; /* Space between form groups */
+}
+
+.sowing-form label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.sowing-form input {
+    width: 100%;             /* Makes input fields take full width */
+    padding: 0.5rem;         /* Adds padding inside input fields */
+    font-size: 1rem;         /* Sets font size for input text */
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    gap: 10px; /* Space between buttons */
+    margin-top: 20px;
+}
+
+button {
+    padding: 0.75rem 1.5rem;         /* Adds padding to buttons */
+    font-size: 1rem;                 /* Sets font size for button text */
+    cursor: pointer;                 /* Changes cursor on hover */
+    background-color: #388e3c;       /* Green background for buttons */
+    color: white;                    /* White text color */
+    border: none;                    /* No border */
+    border-radius: 5px;              /* Rounded corners */
+}
+
+button:hover {
+    background-color: #2e7d32;       /* Darker green on hover */
+}
+
+/* Footer */
+.footer {
+    background-color: #388e3c;
+    color: white;
+    text-align: center;
+    padding: 1rem 2rem;  /* Added padding for consistency */
+    width: 100%;      /* Full width */
+    box-sizing: border-box;  /* Include padding in the width */
+    position: fixed;  /* Fixed position */
+    bottom: 0;        /* At the bottom of the page */
+    z-index: 1000;    /* On top of other elements */
+}
+
+/* Alternative Side-by-Side Layout */
+.alt-container {
+    display: flex;              /* Use Flexbox for layout */
+    justify-content: space-between; /* Distribute space between items */
+    gap: 2rem;                  /* Space between flex items */
+}
+
+.alt-container .alt-image,
+.alt-container .alt-description {
+    flex: 1;                    /* Allow items to grow and fill available space */
+}
+
+.alt-container .alt-image {
+    max-width: 45%;             /* Limit image width */
+    border: 2px solid #000;     /* Border around the image */
+    border-radius: 10px;        /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Shadow for depth */
+}
+
+.alt-container .alt-description {
+    max-width: 45%;             /* Limit description width */
+    background-color: #f9f9f9;  /* Light background color */
+    padding: 1rem;              /* Padding inside the description box */
+    border-radius: 5px;         /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    color: #333;                /* Text color */
+    font-size: 20px;            /* Font size */
+    line-height: 1.6;           /* Line height for readability */
+    text-align: justify;        /* Justify text */
+}
+
+
+#progress-container {
+    width: 100%;
+    background-color: #f3f3f3;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px;
+    margin-top: 20px;
+}
+#progress-bar {
+    height: 30px;
+    background-color: #4caf50;
+    width: 0%;
+    text-align: center;
+    color: white;
+    line-height: 30px; /* Center text vertically */
+    border-radius: 4px;
+}
+#progress-text {
+    margin-top: 10px;
+}

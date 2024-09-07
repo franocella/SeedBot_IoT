@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sowing Control - SeedBot</title>
+    <link rel="stylesheet" href="static/css/SeedBot.css">
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">SeedBot</div>
+        <ul class="navbar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/sowing_control">Sowing Control</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container" style="margin-top: 100px;">
+        <h1 style="text-align: center;">Sowing Control</h1>
+
+        <!-- Container for buttons -->
+        <div class="button-container">
+            <button type="button" id="startButton">Start Sowing</button>
+            <button type="button" id="stopButton" disabled>End Sowing</button>
+        </div>
+
+        <div id="sowingStatus" style="text-align: center; margin-top: 20px;">Current Status: Not started</div>
+
+        <!-- Sowing Form -->
+        <div>
+            <form class="sowing-form" id="sowingForm">
+                <div class="form-group" id="lengthField">
+                    <label for="length">Field Length (in meters):</label>
+                    <input type="number" id="length" name="length" required>
+                </div>
+
+                <div class="form-group" id="widthField">
+                    <label for="width">Field Width (in meters):</label>
+                    <input type="number" id="width" name="width" required>
+                </div>
+
+                <div class="form-group" id="square_sizeField">
+                    <label for="square_size">Grid Cell Size (in meters):</label>
+                    <input type="number" id="square_size" name="square_size" required>
+                </div>
+            </form>
+        </div>
+
+        <h2>Sowing Progress</h2>
+        <div id="progress-container">
+            <div id="progress-bar">0%</div>
+        </div>
+        <div id="progress-text">Progress: 0%</div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        © 2024 SeedBot_IoT_project. All rights reserved.
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let field_id = null;
+            let square_size = null;
+            let length = null;
+            let width = null;
+            let num_cols = null;
+            let num_rows = null;
+            let currentStatus = null; // Usa un nome diverso
+
+            let pollingInterval = null;
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+
+            // Funzione per aggiornare la barra di progresso
+            function updateProgress() {
+                if (field_id === null) return; // Non fare nulla se field_id non è stato impostato
+                if (currentStatus !== 'started') return;
+
+                fetch(`/sowing?field_id=${field_id}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        start_polling();
+                        const progressPercentage = Math.round(data.progress_info.progress_percentage);
+                        const sowedCells = Math.round(data.progress_info.sowed_cells);
+                        const totalCells = Math.round(data.progress_info.total_cells);
+                        const statusText = data.status; // Usa un nome diverso per evitare conflitti    
+                        
+                        console.log('Progress:', progressPercentage);
+                        console.log('Sowed Cells:', sowedCells);
+                        console.log('Total Cells:', totalCells);
+                        console.log('Status:', statusText);
+
+                        if (statusText === 'Complete') {
+                            startButton.innerText = 'Start Sowing';
+                            currentStatus = null; 
+                        } else if (statusText === 'Paused') {
+                            currentStatus = 'paused'; // Usa il nuovo nome
+                            startButton.innerText = 'Resume Sowing';
+                        } else if (statusText === 'In progress') {
+                            currentStatus = 'started'; // Usa il nuovo nome
+                            startButton.innerText = 'Pause Sowing';
+                        }
+
+
+                        if (!isNaN(progressPercentage) && !isNaN(sowedCells) && !isNaN(totalCells)) {
+                            progressBar.style.width = `${progressPercentage}%`;
+                            progressBar.textContent = `${progressPercentage}%`;
+                            progressText.textContent = `Progress: ${progressPercentage}% (${sowedCells} of ${totalCells} cells)`;
+                        } else {
+                            console.error('Invalid progress data:', data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching progress:', error);
+                    });
+            }
+
+            // Funzione per gestire la logica di polling basata sullo stato della semina
+            function start_polling() {
+                if (field_id !== null) {
+                    if (pollingInterval) clearInterval(pollingInterval);
+                    pollingInterval = setInterval(updateProgress, 6000);
+                    updateProgress();
+                }
+            }
+
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+            const lengthField = document.getElementById('lengthField');
+            const widthField = document.getElementById('widthField');
+            const square_sizeField = document.getElementById('square_sizeField');
+            const sowingStatus = document.getElementById('sowingStatus');
+
+            // Add event listeners to buttons
+            startButton.addEventListener('click', handleSowing);
+            stopButton.addEventListener('click', stopSowing);
+
+            // Funzione per gestire il processo di semina
+            function handleSowing() {
+                length = document.getElementById('length').value;
+                width = document.getElementById('width').value;
+                square_size = document.getElementById('square_size').value;
+
+                console.log('Length:', length);
+                console.log('Width:', width);
+                console.log('Cell Size:', square_size);
+
+                if (length === '' || width === '' || square_size === '') {
+                    sowingStatus.innerText = 'Error: Please fill in all fields';
+                    return;
+                }
+
+                if (isNaN(length) || isNaN(width) || isNaN(square_size)) {
+                    sowingStatus.innerText = 'Error: Length, width, and cell size must be numbers';
+                    return;
+                }
+
+                const action = startButton.innerText === 'Start Sowing' ? 'POST' : 'PUT';
+                const payload = { length, width, square_size };
+
+                fetch('/sowing', {
+                    method: action,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: action === 'POST' ? JSON.stringify(payload) : null
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.message) {
+                            sowingStatus.innerText = 'Current Status: ' + data.message;
+                        }
+                        if (data.field_id) {
+                            field_id = data.field_id;
+                        }
+
+                        if (action === 'POST') {
+                            lengthField.style.display = 'none';
+                            widthField.style.display = 'none';
+                            square_sizeField.style.display = 'none';
+                            startButton.innerText = 'Pause Sowing';
+                            startButton.disabled = false;
+                            stopButton.disabled = false;
+                            currentStatus = 'started';
+                            start_polling();
+                        } else if (data.message === 'Sowing paused' || data.message === 'Sowing resumed') {
+                            startButton.innerText = data.message === 'Sowing paused' ? 'Resume Sowing' : 'Pause Sowing';
+                            currentStatus = data.message === 'Sowing paused' ? 'paused' : 'started';
+                        } else if (data.message === 'Sowing stopped') {
+                            lengthField.style.display = 'block';
+                            widthField.style.display = 'block';
+                            square_sizeField.style.display = 'block';
+                            startButton.innerText = 'Start Sowing';
+                            startButton.disabled = false;
+                            stopButton.disabled = true;
+                            currentStatus = null;
+                        }
+                    })
+                    .catch(error => {
+                        sowingStatus.innerText = 'Error: Unable to process request';
+                        console.error('Error:', error);
+                    });
+            }
+
+            // Funzione per fermare il processo di semina
+            function stopSowing() {
+                fetch('/sowing', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        sowingStatus.innerText = 'Current Status: ' + data.message;
+                        startButton.innerText = 'Start Sowing';
+                        startButton.disabled = false;
+                        stopButton.disabled = true;
+                        lengthField.style.display = 'block';
+                        widthField.style.display = 'block';
+                        square_sizeField.style.display = 'block';
+                        currentStatus = null; // Usa il nuovo nome
+                    })
+                    .catch(error => {
+                        sowingStatus.innerText = 'Error: Unable to stop sowing';
+                        console.error('Error:', error);
+                    });
+            }
+
+            // Configura Socket.IO
+            const socket = io();
+
+            socket.on('sowing_status', (data) => {
+                const status_str = data.status;
+                sowingStatus.innerText = 'Current Status: ' + status_str;
+
+                if (status_str === 'Complete') {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    startButton.innerText = 'Start Sowing';
+                    currentStatus = null; // Usa il nuovo nome
+                } else if (status_str === 'Paused') {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    currentStatus = 'paused'; // Usa il nuovo nome
+                    startButton.innerText = 'Resume Sowing';
+                } else if (status_str === 'In progress') {
+                    start_polling();
+                    currentStatus = 'started'; // Usa il nuovo nome
+                    startButton.innerText = 'Pause Sowing';
+                } else {
+                    console.error('Invalid status:', status_str);
+                }
+            });
+        });
+
+    </script>
+</body>
+
+</html>
